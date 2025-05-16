@@ -18,10 +18,27 @@ import 'gen/fonts.gen.dart';
 import 'gen/colors.gen.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+import 'package:hive_flutter/hive_flutter.dart';
+import 'screens/main_screen.dart';
+import 'models/location_data.dart';
+import 'models/geo_fence.dart';
+import 'models/daily_summary.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: 'config.env');
+  
+  // Initialize Hive
+  await Hive.initFlutter();
+  
+  // Register Hive adapters
+  Hive.registerAdapter(LocationDataAdapter());
+  Hive.registerAdapter(GeoFenceAdapter());
+  Hive.registerAdapter(DailySummaryAdapter());
+  
+  // Open Hive boxes
+  await Hive.openBox<DailySummary>('dailySummaries');
+  
   initializeDependencies().then((_) => runApp(MyApp()));
 }
 
@@ -67,7 +84,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider<auth.AuthProvider>(create: (_) => auth.AuthProvider(_auth, _storage)),
       ],
       child: MaterialApp(
-        title: 'Example project',
+        title: 'Location Tracker',
         navigatorKey: navigatorKey,
         debugShowCheckedModeBanner: false,
         scrollBehavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
@@ -108,7 +125,7 @@ class MyApp extends StatelessWidget {
             checkColor: const WidgetStatePropertyAll(Colors.white),
           ),
         ),
-        home: const SplashScreen(),
+        home: const MainScreen(),
       ),
     );
   }
